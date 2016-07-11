@@ -2,11 +2,11 @@ require 'viking'
 
 describe Viking do
 
-  describe "#initialize" do
     let(:axe){ Axe.new }
     let(:bow){ Bow.new }
     let(:vik){ Viking.new("Vik") }
 
+  describe "#initialize" do
     it "sets the viking's name to the argument passed to it" do
       expect(Viking.new("Vik").name).to eq("Vik")
     end
@@ -27,6 +27,7 @@ describe Viking do
     it "doesn't have a weapon when first initialized" do
       expect(Viking.new("Vik", 200).weapon).to eq(nil)
     end
+  end
 
   describe "#pick_up_weapon" do
      it "gives the viking a weapon" do
@@ -82,14 +83,44 @@ describe Viking do
       expect(enemy.health).to eq(97.5)
     end
 
-    it "reduces the enemy's health by the weapon's 
+    it "reduces the enemy's health by the fist's 
         multiplier times the attacker's strength" do
       multi = Fists.new.use
       strength = vik.strength
       vik.attack(enemy)
       expect(100-enemy.health).to eq(strength * multi)
     end
-  end
 
+    it "reduces the enemy's health by the weapon's 
+        multiplier times the attacker's strength" do
+      multi = axe.use
+      strength = vik.strength
+      vik.pick_up_weapon(axe)
+      vik.attack(enemy)
+      expect(100-enemy.health).to eq(strength * multi)
+    end
+
+    it "calls damage_with_weapon" do
+      multi = axe.use
+      strength = vik.strength
+      expect(vik).to receive(:damage_with_weapon).and_return(multi * strength)
+      vik.pick_up_weapon(axe)
+      vik.attack(enemy)
+    end
+
+    it "attacking with a bow without arrows causes the viking to use fists
+        instead" do
+      vik.pick_up_weapon(Bow.new(0))
+      vik.attack(enemy)
+      expect(enemy.health).to eq(97.5)
+    end
+
+    it "killing a Viking raises an error" do
+      enemy2 = Viking.new("Enemy 2", 2.5)
+      expect{ vik.attack(enemy2) }
+        .to raise_error("#{enemy2.name} has Died...")
+    end
+
+  end
 end
-end
+
